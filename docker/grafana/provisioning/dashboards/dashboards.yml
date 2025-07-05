@@ -1,0 +1,29 @@
+# ShadowTrace Sentinel Grafana Dashboard Configuration
+apiVersion: 1
+
+providers:
+  # Dashboard provider for automatically loading dashboards
+  - name: 'Sentinel Dashboards'
+    orgId: 1
+    folder: 'ShadowTrace Sentinel'
+    folderUid: 'sentinel_dashboards'
+    type: file
+    disableDeletion: true
+    editable: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/dashboards
+
+  # Alert rule provider (if using Grafana managed alerts)
+  - name: 'Sentinel Alert Rules'
+    orgId: 1
+    folder: 'Alerts'
+    folderUid: 'sentinel_alerts'
+    type: file
+    disableDeletion: true
+    editable: false
+    updateIntervalSeconds: 60
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/alerts

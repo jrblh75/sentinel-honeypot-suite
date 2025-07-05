@@ -1,0 +1,69 @@
+# ShadowTrace Sentinel Grafana Datasource Configuration
+apiVersion: 1
+
+datasources:
+  # Prometheus datasource for metrics
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    basicAuth: true
+    basicAuthUser: ${PROMETHEUS_USER}
+    secureJsonData:
+      basicAuthPassword: ${PROMETHEUS_PASSWORD}
+    jsonData:
+      timeInterval: 15s
+      queryTimeout: 60s
+      httpMethod: POST
+      manageAlerts: true
+      alertmanagerUid: alertmanager
+    editable: false
+
+  # PostgreSQL datasource for raw data queries
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    url: ${POSTGRES_HOST}:${POSTGRES_PORT}
+    database: ${POSTGRES_DB}
+    user: ${GRAFANA_DB_USER}
+    secureJsonData:
+      password: ${GRAFANA_DB_PASSWORD}
+    jsonData:
+      sslmode: disable
+      maxOpenConns: 10
+      maxIdleConns: 2
+      connMaxLifetime: 14400
+      postgresVersion: 1300
+      timescaledb: false
+    editable: false
+
+  # Loki datasource for logs (if Loki is deployed)
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      maxLines: 1000
+      timeout: 60s
+      queryTimeout: 300s
+    editable: false
+
+  # Alertmanager datasource
+  - name: Alertmanager
+    type: alertmanager
+    access: proxy
+    url: http://alertmanager:9093
+    uid: alertmanager
+    jsonData:
+      implementation: prometheus
+      handleGrafanaManagedAlerts: true
+    editable: false
+
+  # TestData datasource for testing
+  - name: TestData
+    type: testdata
+    access: proxy
+    uid: testdata
+    isDefault: false
+    editable: false

@@ -1,0 +1,178 @@
+# ShadowTrace Sentinel Alert Rules
+groups:
+  - name: sentinel.honeypot.alerts
+    rules:
+      # High Priority Security Alerts
+      - alert: HoneypotTriggered
+        expr: increase(sentinel_honeypot_triggers_total[5m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          service: honeypot
+          category: security
+        annotations:
+          summary: "Honeypot triggered - possible intrusion detected"
+          description: "A honeypot has been triggered {{ $value }} times in the last 5 minutes. Instance: {{ $labels.instance }}"
+          runbook_url: "https://docs.sentinel-honeypot.com/alerts/honeypot-triggered"
+
+      - alert: MultipleFailedLogins
+        expr: increase(sentinel_auth_failures_total[5m]) > 10
+        for: 1m
+        labels:
+          severity: warning
+          service: honeypot
+          category: security
+        annotations:
+          summary: "Multiple failed login attempts detected"
+          description: "{{ $value }} failed login attempts in 5 minutes from {{ $labels.source_ip }}"
+
+      - alert: SuspiciousFileAccess
+        expr: increase(sentinel_file_access_suspicious_total[1m]) > 0
+        for: 0s
+        labels:
+          severity: critical
+          service: honeypot
+          category: security
+        annotations:
+          summary: "Suspicious file access detected"
+          description: "Suspicious file access detected on honeypot {{ $labels.honeypot_id }}"
+
+      # System Health Alerts
+      - alert: SentinelServiceDown
+        expr: up{job="sentinel-honeypot"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: sentinel
+          category: availability
+        annotations:
+          summary: "Sentinel service is down"
+          description: "Sentinel honeypot service has been down for more than 30 seconds"
+
+      - alert: DatabaseConnectionFailed
+        expr: sentinel_database_connection_status == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: database
+          category: availability
+        annotations:
+          summary: "Database connection failed"
+          description: "Cannot connect to PostgreSQL database for more than 1 minute"
+
+      - alert: HighMemoryUsage
+        expr: (sentinel_memory_usage_bytes / sentinel_memory_limit_bytes) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          service: sentinel
+          category: performance
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 90% for more than 5 minutes: {{ $value }}%"
+
+      - alert: HighCPUUsage
+        expr: rate(sentinel_cpu_usage_seconds_total[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: sentinel
+          category: performance
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for more than 5 minutes: {{ $value }}%"
+
+      # Alert System Health
+      - alert: AlertingSystemDown
+        expr: sentinel_alerting_system_status == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: alerting
+          category: availability
+        annotations:
+          summary: "Alerting system is down"
+          description: "The alerting system has been down for more than 2 minutes"
+
+      - alert: LogFilesFull
+        expr: (sentinel_log_disk_usage_bytes / sentinel_log_disk_total_bytes) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+          service: logging
+          category: storage
+        annotations:
+          summary: "Log disk space running low"
+          description: "Log disk usage is above 85%: {{ $value }}%"
+
+  - name: sentinel.network.alerts
+    rules:
+      # Network Security Alerts
+      - alert: UnusualNetworkTraffic
+        expr: rate(sentinel_network_bytes_total[5m]) > 1000000  # 1MB/s
+        for: 2m
+        labels:
+          severity: warning
+          service: network
+          category: security
+        annotations:
+          summary: "Unusual network traffic detected"
+          description: "Network traffic rate is {{ $value }} bytes/second, which is above normal"
+
+      - alert: TooManyConnections
+        expr: sentinel_active_connections > 100
+        for: 1m
+        labels:
+          severity: warning
+          service: network
+          category: performance
+        annotations:
+          summary: "Too many active connections"
+          description: "Number of active connections ({{ $value }}) exceeds threshold"
+
+      - alert: GeolocationAnomaly
+        expr: increase(sentinel_geolocation_anomalies_total[10m]) > 0
+        for: 0s
+        labels:
+          severity: warning
+          service: geolocation
+          category: security
+        annotations:
+          summary: "Geolocation anomaly detected"
+          description: "Unusual geographic location detected for connection: {{ $labels.country_code }}"
+
+  - name: sentinel.data.alerts
+    rules:
+      # Data Integrity Alerts
+      - alert: DataCorruption
+        expr: sentinel_data_integrity_check_failures_total > 0
+        for: 0s
+        labels:
+          severity: critical
+          service: data
+          category: integrity
+        annotations:
+          summary: "Data corruption detected"
+          description: "Data integrity check failed {{ $value }} times"
+
+      - alert: BackupFailed
+        expr: time() - sentinel_last_successful_backup_timestamp > 86400  # 24 hours
+        for: 0s
+        labels:
+          severity: critical
+          service: backup
+          category: data_protection
+        annotations:
+          summary: "Backup failed or overdue"
+          description: "Last successful backup was more than 24 hours ago"
+
+      - alert: EncryptionKeyRotationOverdue
+        expr: time() - sentinel_last_key_rotation_timestamp > 2592000  # 30 days
+        for: 0s
+        labels:
+          severity: warning
+          service: encryption
+          category: security
+        annotations:
+          summary: "Encryption key rotation overdue"
+          description: "Encryption keys have not been rotated in over 30 days"
