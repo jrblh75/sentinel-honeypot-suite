@@ -110,6 +110,47 @@ validate_env() {
         ((errors++))
     fi
     
+    if [[ -z "${SENTINEL_ENCRYPTION_KEY:-}" ]] || [[ "$SENTINEL_ENCRYPTION_KEY" == "GENERATE_32_CHAR_ENCRYPTION_KEY" ]]; then
+        print_error "SENTINEL_ENCRYPTION_KEY must be set to a secure value"
+        ((errors++))
+    fi
+    
+    # Additional service passwords
+    if [[ -z "${REDIS_PASSWORD:-}" ]] || [[ "$REDIS_PASSWORD" == "CHANGE_REDIS_PASSWORD" ]]; then
+        print_error "REDIS_PASSWORD must be set to a secure value"
+        ((errors++))
+    fi
+    
+    if [[ -z "${GRAFANA_PASSWORD:-}" ]] || [[ "$GRAFANA_PASSWORD" == "CHANGE_GRAFANA_PASSWORD" ]]; then
+        print_error "GRAFANA_PASSWORD must be set to a secure value"
+        ((errors++))
+    fi
+    
+    # Check required PostgreSQL performance variables
+    if [[ -z "${POSTGRES_SHARED_BUFFERS:-}" ]]; then
+        print_error "POSTGRES_SHARED_BUFFERS must be set"
+        ((errors++))
+    fi
+    
+    # Check Docker configuration
+    if [[ -z "${DOCKER_SUBNET:-}" ]]; then
+        print_error "DOCKER_SUBNET must be set"
+        ((errors++))
+    fi
+    
+    # Check backup configuration if enabled
+    if [[ "${BACKUP_ENABLED:-false}" == "true" ]]; then
+        if [[ -z "${BACKUP_SCHEDULE:-}" ]]; then
+            print_error "BACKUP_SCHEDULE must be set when backups are enabled"
+            ((errors++))
+        fi
+        
+        if [[ -z "${BACKUP_RETENTION_DAYS:-}" ]]; then
+            print_error "BACKUP_RETENTION_DAYS must be set when backups are enabled"
+            ((errors++))
+        fi
+    fi
+    
     if [[ $errors -eq 0 ]]; then
         print_success "Environment validation passed"
         return 0
@@ -124,7 +165,7 @@ validate_env() {
 generate_passwords() {
     print_status "Generating secure passwords and secrets..."
     
-    # Generate random passwords
+    # Generate random passwords and keys
     local postgres_password=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
     local sentinel_secret=$(openssl rand -hex 32)
     local jwt_secret=$(openssl rand -base64 64 | tr -d "=+/" | cut -c1-64)
@@ -132,8 +173,9 @@ generate_passwords() {
     local webhook_secret=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
     local redis_password=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
     local grafana_password=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-16)
+    local backup_encryption_key=$(openssl rand -hex 16)
     
-    # Update .env file
+    # Update .env file with all generated values
     sed -i.bak \
         -e "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$postgres_password/" \
         -e "s/SENTINEL_SECRET_KEY=.*/SENTINEL_SECRET_KEY=$sentinel_secret/" \
@@ -142,10 +184,29 @@ generate_passwords() {
         -e "s/SENTINEL_WEBHOOK_SECRET=.*/SENTINEL_WEBHOOK_SECRET=$webhook_secret/" \
         -e "s/REDIS_PASSWORD=.*/REDIS_PASSWORD=$redis_password/" \
         -e "s/GRAFANA_PASSWORD=.*/GRAFANA_PASSWORD=$grafana_password/" \
+        -e "s/BACKUP_ENCRYPTION_KEY=.*/BACKUP_ENCRYPTION_KEY=$backup_encryption_key/" \
         "$ENV_FILE"
     
+    # Update DATABASE_URL to use the new password
+    local database_url="postgresql://\${POSTGRES_USER}:\${POSTGRES_PASSWORD}@\${POSTGRES_HOST}:\${POSTGRES_PORT}/\${POSTGRES_DB}"
+    sed -i.bak2 "s|DATABASE_URL=.*|DATABASE_URL=$database_url|" "$ENV_FILE"
+    
+    # Clean up backup files
+    rm -f "${ENV_FILE}.bak" "${ENV_FILE}.bak2"
+    
     print_success "Secure passwords generated and saved to .env file"
-    print_warning "Backup created at .env.bak"
+    print_warning "Backup files cleaned up automatically"
+    
+    # Display a summary of what was generated
+    print_status "Generated the following secure credentials:"
+    echo "  - PostgreSQL password (25 characters)"
+    echo "  - Sentinel secret key (64 characters)"
+    echo "  - JWT secret (64 characters)"
+    echo "  - Encryption key (32 characters)"
+    echo "  - Webhook secret (32 characters)"
+    echo "  - Redis password (25 characters)"
+    echo "  - Grafana password (16 characters)"
+    echo "  - Backup encryption key (32 characters)"
 }
 
 # Function to start the Docker environment
