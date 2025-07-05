@@ -94,6 +94,7 @@ sentinel-honeypot-suite/
 │   ├── benchmark.sh                            # Performance testing
 │   ├── update.sh                               # Update system
 │   └── cleanup.sh                              # System cleanup
+├── verify-setup.sh                             # 🔍 Project verification tool
 │
 ├── windows/                                     # 🪟 Windows Installation
 │   └── install.ps1                            # PowerShell installer
@@ -113,7 +114,9 @@ sentinel-honeypot-suite/
 ## 🗂️ Installation Reference Order
 
 ### 🎯 **Quick Start Path (Recommended)**
+
 ```bash
+0. ./verify-setup.sh             # Verify complete project setup
 1. docs/INSTALLATION.md          # Read installation overview
 2. docs/ENVIRONMENT.md           # Environment setup guide  
 3. scripts/docker-env.sh setup   # One-command environment setup
