@@ -61,11 +61,24 @@ sentinel-honeypot-suite/
 ├── README.md                                    # This file
 ├── SECURITY.md                                  # Security guidelines
 ├── DEPLOYMENT.md                                # Deployment instructions
+├── LICENSE                                      # MIT License
+├── .env.template                                # Environment template
+├── .gitignore                                   # Git ignore rules
+├── docker-compose.yml                           # Docker services
 ├── docs/                                        # Documentation
 │   ├── INSTALLATION.md                         # Installation guide
 │   ├── CONFIGURATION.md                        # Configuration options
 │   ├── MONITORING.md                           # Monitoring and alerts
-│   └── TROUBLESHOOTING.md                      # Common issues
+│   ├── TROUBLESHOOTING.md                      # Common issues
+│   └── API.md                                  # API documentation
+├── docker/                                      # Docker configuration
+│   ├── postgres/                               # PostgreSQL setup
+│   │   ├── init/                              # Database initialization
+│   │   │   └── 01-init-database.sql           # Database schema
+│   │   └── config/                            # PostgreSQL config
+│   │       └── postgresql.conf                # Optimized settings
+│   ├── Dockerfile                             # Application container
+│   └── prometheus/                            # Monitoring config
 ├── windows/
 │   └── install.ps1                            # Windows PowerShell installer
 ├── linux/
@@ -75,7 +88,12 @@ sentinel-honeypot-suite/
 └── scripts/                                    # Utility scripts
     ├── cleanup.sh                              # Removal script
     ├── status.sh                               # Status checker
-    └── update.sh                               # Update script
+    ├── update.sh                               # Update script
+    ├── test-alerts.sh                          # Alert testing
+    ├── test.sh                                 # Test suite
+    ├── validate.sh                             # Validation script
+    ├── benchmark.sh                            # Performance testing
+    └── docker-env.sh                           # Docker environment manager
 ```
 
 ## 🚀 Quick Start
@@ -113,7 +131,30 @@ sudo ./"ShadowTrace Sentinel Server - macOS.sh"
 
 ## 🔧 Configuration
 
+### Docker Environment Setup
+
+For production deployments with PostgreSQL database:
+
+```bash
+# Initial setup (creates .env file from template and generates secure passwords)
+./scripts/docker-env.sh setup
+
+# Start all services (PostgreSQL, Redis, Honeypot, Monitoring)
+./scripts/docker-env.sh start
+
+# Check service status
+./scripts/docker-env.sh status
+```
+
+**Important Notes:**
+- The `.env` file is automatically created from `.env.template` during setup
+- All default passwords and secrets are auto-generated for security
+- The `.env` file is excluded from git to protect sensitive information
+- If you have existing environment configurations (e.g., in PostgresAI directory), you can reference them when customizing your `.env` file
+
 ### Environment Variables
+
+#### Basic Configuration
 
 ```bash
 # Set these environment variables before installation
@@ -122,13 +163,37 @@ export SENTINEL_WEBHOOK="https://your-webhook-url.com"
 export SENTINEL_LOG_LEVEL="INFO"  # DEBUG, INFO, WARN, ERROR
 ```
 
+#### Database Configuration (Docker)
+
+```bash
+# PostgreSQL Database Settings
+POSTGRES_DB=sentinel_honeypot
+POSTGRES_USER=sentinel_admin
+POSTGRES_PASSWORD=your-secure-password
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+
+# Application Security Keys (auto-generated)
+SENTINEL_SECRET_KEY=your-32-character-secret-key
+SENTINEL_JWT_SECRET=your-jwt-secret-key
+SENTINEL_ENCRYPTION_KEY=your-encryption-key
+```
+
 ### Custom Configuration
+
+#### Standalone Installation
 
 Edit the configuration files in `~/.honeypot/config/` after installation:
 
 - `sentinel.conf` - Main configuration
 - `alerts.conf` - Alert settings  
 - `encryption.conf` - Encryption parameters
+
+#### Docker Installation
+
+- `.env` - Environment variables and secrets
+- `docker-compose.yml` - Service configuration
+- `docker/postgres/init/` - Database initialization scripts
 
 ## 📊 Monitoring
 

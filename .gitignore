@@ -1,0 +1,189 @@
+# ShadowTrace Sentinel - Git Ignore File
+
+# =============================================================================
+# SENSITIVE FILES - NEVER COMMIT THESE
+# =============================================================================
+
+# Environment files with secrets
+.env
+.env.local
+.env.production
+.env.staging
+*.env.backup
+*.env.bak
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+backups/
+*.sql
+*.dump
+
+# Log files
+logs/
+*.log
+*.log.*
+
+# =============================================================================
+# DOCKER & CONTAINER FILES
+# =============================================================================
+
+# Docker volumes and data
+docker/volumes/
+docker/data/
+postgres_data/
+honeypot_data/
+
+# Docker Compose override files
+docker-compose.override.yml
+docker-compose.local.yml
+
+# =============================================================================
+# SECURITY & CRYPTOGRAPHIC FILES
+# =============================================================================
+
+# Private keys and certificates
+*.key
+*.pem
+*.crt
+*.cert
+*.p12
+*.pfx
+
+# GPG keys
+*.gpg
+*.asc
+secring.*
+pubring.*
+
+# SSH keys
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+*.pub
+
+# =============================================================================
+# HONEYPOT RUNTIME FILES
+# =============================================================================
+
+# Runtime data
+data/
+tmp/
+temp/
+cache/
+
+# Session files
+sessions/
+*.session
+
+# PID files
+*.pid
+
+# =============================================================================
+# DEVELOPMENT FILES
+# =============================================================================
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Node.js (if using Node.js components)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Python (if using Python components)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# =============================================================================
+# SYSTEM & OS FILES
+# =============================================================================
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# =============================================================================
+# TESTING & COVERAGE FILES
+# =============================================================================
+
+# Test results
+test-results/
+coverage/
+*.cover
+.coverage
+.pytest_cache/
+.tox/
+
+# =============================================================================
+# BUILD & DISTRIBUTION FILES
+# =============================================================================
+
+# Build outputs
+build/
+dist/
+*.egg-info/
+*.tar.gz
+*.zip
+*.dmg
+*.exe
+*.msi
+
+# =============================================================================
+# CONFIGURATION OVERRIDES
+# =============================================================================
+
+# Local configuration overrides
+config/local.*
+config/*.local.*
+*local.conf
+*local.config
+
+# =============================================================================
+# MONITORING & METRICS
+# =============================================================================
+
+# Prometheus data
+prometheus_data/
+
+# Grafana data
+grafana_data/
+
+# Application metrics
+metrics/
+stats/
